@@ -16,15 +16,20 @@
 "%"                   return '%'
 "("                   return '('
 ")"                   return ')'
+"=="		      return '=='
+"="		      return '='
 "PI"                  return 'PI'
 "E"                   return 'E'
 <<EOF>>               return 'EOF'
+([A-Z]|[a-z])+        return 'ID'
 .                     return 'INVALID'
 
 /lex
 
 /* operator associations and precedence */
 
+%right '='
+%right '=='
 %left '+' '-'
 %left '*' '/'
 %left '^'
@@ -43,24 +48,29 @@ expressions
     ;
 
 e
-    : e '+' e
-        {$$ = $1+$3;}
+    : ID '=' e
+	{$$ = ""+$3+" &"+$1+" "+'=';}
+    | ID '==' e
+	{$$ = ""+$1+" "+$3+" ==";}
+
+    | e '+' e
+        {$$ = ""+$1+" "+$3+' +';}
     | e '-' e
-        {$$ = $1-$3;}
+        {$$ = ""+$1+" "+$3+' -';}
     | e '*' e
-        {$$ = $1*$3;}
+        {$$ = ""+$1+" "+$3+' *';}
     | e '/' e
-        {$$ = $1/$3;}
+        {$$ = ""+$1+" "+$3+' /';}
     | e '^' e
-        {$$ = Math.pow($1, $3);}
+        {$$ = ""+$1+" "+$3+' ^';}
     | e '!'
         {
-          $$ = (function fact (n) { return n==0 ? 1 : fact(n-1) * n })($1);
+          {$$ = ""+$1+' !';}
         }
     | e '%'
-        {$$ = $1/100;}
+        {$$ = ""+$1+' %';}
     | '-' e %prec UMINUS
-        {$$ = -$2;}
+        {$$ = ""+$1+'NEG';}
     | '(' e ')'
         {$$ = $2;}
     | NUMBER
